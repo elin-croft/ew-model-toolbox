@@ -1,8 +1,1 @@
-  .*
-  .idea
-  .DS_Store
   *.pyc
-  .vscode/
-  */build/*
-  */__pycache__/*
-
