@@ -1,3 +1,5 @@
-from .models import BACKBONE, MODEL, RECMODEL
+from .builder import BACKBONE, RECMODEL, LOSS
+from .models import *
+from .losses import *
 
-__all__ = ['BACKBONE', 'MODEL', 'RECMODEL']
+__all__ = ['BACKBONE', 'RECMODEL', 'LOSS']

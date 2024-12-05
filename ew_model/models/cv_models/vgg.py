@@ -1,6 +1,7 @@
 import torch
+import torch.functional
 import torch.nn as nn
-from ..builder import BACKBONE
+from ...builder import BACKBONE
 
 
 class BaseCNN(nn.Module):
@@ -24,7 +25,6 @@ class BaseCNN(nn.Module):
         if self.activate:
             out = self.activate_layer(out)
         return out
-
 
 @BACKBONE.register_module()
 class Vgg(nn.Module):
