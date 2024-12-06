@@ -1,1 +1,1 @@
-from .vgg import Vgg
+from .bockbones.vgg import Vgg

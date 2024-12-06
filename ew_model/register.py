@@ -5,12 +5,11 @@ class Register:
         self.name = name
         self.__model_cls_map = dict()
     
-    def get_module_by_name(self, name):
-        try:
-            module = self.__model_cls_map[name]
-            return module
-        except KeyError:
+    def get(self, name):
+        module = self.__model_cls_map[name]
+        if module is None:
             raise KeyError(f"{name} hasn't been registered yet")
+        return module
 
     def check_module(self, name):
         if self.__model_cls_map.get(name) is None:
@@ -36,3 +35,7 @@ class Register:
             name = cls.__name__
             self.__register(name, cls)
         return __register
+    
+    def build(self, cfg):
+        # TODO: cfg should be a dict that each key is a model or layer or loss name
+        pass

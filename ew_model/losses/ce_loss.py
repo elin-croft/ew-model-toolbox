@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ..builder import LOSS
+from ew_model.builder import LOSS
 
 def cross_entropy(input, label, weight):
     """

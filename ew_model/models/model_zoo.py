@@ -1,2 +1,2 @@
-from .cv_models import Vgg
-from .rec_models import TwoTowerModel
+from .cv_models import *
+from .rec_models import *

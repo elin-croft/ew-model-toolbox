@@ -1,7 +1,7 @@
 import torch
 import torch.functional
 import torch.nn as nn
-from ...builder import BACKBONE
+from ew_model.builder import BACKBONE
 
 
 class BaseCNN(nn.Module):

@@ -1,6 +1,7 @@
+# from .models import BACKBONE, RECMODEL
+# from .losses import LOSS
 from .register import Register
 
-MODEL=Register("model")
+RECMODEL=Register("rec_models")
 BACKBONE=Register("backbone")
-RECMODEL=Register("rec_model")
-LOSS=Register("losses")
+LOSS=Register("loss")
