@@ -36,6 +36,13 @@ class Register:
             self.__register(name, cls)
         return __register
     
-    def build(self, cfg):
+    def build(self, cfg: dict):
         # TODO: cfg should be a dict that each key is a model or layer or loss name
-        pass
+        model_name = cfg.get('model_name') 
+        args = cfg.copy()
+        args.pop('model_name')
+        try:
+            obj_cls = self.get(model_name)
+        except Exception as e:
+            print(f"build {self.name} error: {str(e)}")
+        return obj_cls(**args)
