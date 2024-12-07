@@ -5,3 +5,4 @@ from .register import Register
 RECMODEL=Register("rec_models")
 BACKBONE=Register("backbone")
 LOSS=Register("loss")
+PARSERS=Register("parsers")

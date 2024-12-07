@@ -1,7 +1,8 @@
 import os, sys
+from abc import ABCMeta
 
 class Register:
-    def __init__(self, name):
+    def __init__(self, name, parent=None):
         self.name = name
         self.__model_cls_map = dict()
     
@@ -23,13 +24,15 @@ class Register:
     def __register(self, name, module):
         self.__model_cls_map[name] = module
 
-    def register_module(self, module=None, name=None, force=False):
-        if name is not None:
-            # TODO: register module seperately
-            pass
+    def register_module(self, name=None, module=None, force=False):
+        if name is not None and module is not None:
+            if force or self.check_module(name=name):
+                self.__model_cls_map[name]=module
+            else:
+                raise KeyError(f"{name} has been registered")
 
         if not force and self.check_module(name):
-            raise RuntimeError(f"{name} has been registered")
+            raise KeyError(f"{name} has been registered")
 
         def __register(cls):
             name = cls.__name__
@@ -43,6 +46,8 @@ class Register:
         args.pop('model_name')
         try:
             obj_cls = self.get(model_name)
-        except Exception as e:
+        except KeyError as e:
             print(f"build {self.name} error: {str(e)}")
         return obj_cls(**args)
+
+PARENT_REGISTER=Register("parent_register")

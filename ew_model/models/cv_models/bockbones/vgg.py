@@ -14,16 +14,21 @@ class BaseCNN(nn.Module):
         self.activate_layer = None
         self.norm = norm
         self.activate =activate
+        self.pooling = pooling
         if norm:
             self.norm_layer = nn.BatchNorm2d(out_channels)
         if activate:
             self.activate_layer = nn.ReLU(inplace=True)
+        if pooling:
+            self.pooling_layer = nn.MaxPool2d((2,2), 2)
     def forward(self, x):
         out = self.conv(x)
         if self.norm:
             out = self.norm_layer(out)
         if self.activate:
             out = self.activate_layer(out)
+        if self.pooling:
+            out = self.pooling_layer(out)
         return out
 
 @BACKBONE.register_module()
