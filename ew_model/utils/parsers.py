@@ -29,3 +29,13 @@ def kernel_size_parser(string:str):
                 size = int(arg)
                 res.append((size, size))
         return res
+
+def tuple_list_parser(arg_type):
+    def tuple_list_parser_core(string: str):
+        args = string.split(",")
+        res = []
+        for arg in args:
+            tuple_args = tuple(map(arg_type, arg.split("-")))
+            res.append(tuple_args)
+        return res
+    return tuple_list_parser_core
