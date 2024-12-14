@@ -5,7 +5,8 @@ import torch
 torch.set_default_device("mps")
 dummy = torch.randn((1,3,224,224))
 
-args = models.PARSERS.get("VggArgs")()
+from configs.vgg_config import VGG
+args = models.PARSERS.get("VggArgs")(VGG)
 print(sys.argv)
 res = args.format_args()
 print(res)

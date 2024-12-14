@@ -13,7 +13,8 @@ class Adapter(metaclass=ABCMeta):
     def parse_args(self, args=None):
         raise Exception("this an abstract function, please override it")
     
-    @abstractmethod
-    def format_args(self,to_map=True):
-        raise Exception("this an abstract function, please override it")
-    
+    def format_args(self, to_map=True):
+        if to_map:
+            return self.to_map()
+        else:
+            return self.to_pair_list()

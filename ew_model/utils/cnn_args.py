@@ -33,9 +33,3 @@ class VggArgs(Adapter):
         self.norm = args.norms
         self.activation = args.activations
         self.pooling = args.poolings
-
-    def format_args(self, to_map=True):
-        if to_map:
-            return self.to_map()
-        else:
-            return self.to_pair_list()
