@@ -19,7 +19,7 @@ class BaseCNN(nn.Module):
         if activate == "Relu":
             modules.append(nn.ReLU(inplace=True))
 
-        if in_channels != out_channels:
+        if pooling is not None:
             pool_args = pooling.split("_")
             pool_layer, pool_args = pool_args[0], tuple(map(int, pool_args[1].split("-")))
             if pool_layer == "max":
@@ -34,47 +34,61 @@ class BaseCNN(nn.Module):
 class Vgg(nn.Module):
     def __init__(self, 
         kernel_size = 3,
-        channels = [(3, 64), (64, 64), (64, 128), (128, 128), (128, 256), (256, 256), (256, 512)],
+        channels = [64, 64, 128, 128, 256, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 512],
         stride=1,
         padding=1,
         norm="BN",
         activation="Relu",
-        pooling=["max_2-2-2"]
+        pooling="max_2-2-2",
+        pooling_position=[1, 3, 7, 11, 15]
     ) -> None:
         super().__init__()
         self.convs = nn.ModuleList()
-        def convert2list(arg, name, arg_type):
+        def convert2list(arg, name, arg_type, match_object=channels):
             if isinstance(arg, list):
-                if len(arg) != len(channels) and len(arg) > 1:
+                if len(arg) != len(match_object) and len(arg) > 1:
                     raise Exception(f"{name} is a list, but it's length does not match length of the channels")
                 elif len(arg) == 1:
-                    return [arg[0]]*len(channels)
+                    return [arg[0]]*len(match_object)
                 else:
                     return arg
 
             elif isinstance(arg, arg_type):
-                return [arg] * len(channels)
+                return [arg] * len(match_object)
         
+        # prepare args
         kernels = convert2list(kernel_size, "kernels", int)
         strides = convert2list(stride, "stride", int)
         paddings = convert2list(padding, "padding", int)
         norms = convert2list(norm, "norm", str)
         activations = convert2list(activation, "activation", str)
-        poolings = convert2list(pooling, "pooling", str)
-        convs = self._make_layers(kernels=kernels, channels=channels, strides=strides, paddings=paddings, 
-                                  norms=norms, activations=activations, poolings=poolings)
-        for i, conv in enumerate(convs):
-            self.convs.add_module(f"conv_{i}", conv)
-    
-    def _make_layers(self, kernels, channels, strides, paddings, norms, activations, poolings):
+        poolings = convert2list(pooling, "pooling", int, pooling_position)
+        pooling_position=set(pooling_position)
 
-        args = [kernels, channels, strides, paddings, norms, activations, poolings]
+        # make layers
+        convs = self._make_layers(kernels=kernels, channels=channels, strides=strides, paddings=paddings, 
+                                  norms=norms, activations=activations,
+                                  poolings=poolings, pooling_position=pooling_position)
+        # add layers
+        for conv in convs:
+            self.convs.append(conv)
+    
+    def _make_layers(self, kernels, channels, strides, paddings, norms, activations, poolings, pooling_position):
+
+        args = [kernels, channels, strides, paddings, norms, activations] 
         convs = []
-        for kernel, channel, stride, padding, norm, act, pool in zip(*args):
-            in_channel, out_channel = channel[0], channel[1]
+        in_channel = 3
+        j = 0
+        for i, (kernel, channel, stride, padding, norm, act) in enumerate(zip(*args)):
+            out_channel = channel
+            pool = None
+            if i in pooling_position:
+                pool = poolings[j]
+                j += 1
             conv = BaseCNN(kernel_size=kernel, in_channels=in_channel, out_channels=out_channel, stride=stride,
                        norm=norm, activate=act, pooling=pool, padding=padding)
             convs.append(conv)
+            in_channel = out_channel
         return convs
 
     def forward(self, x):
