@@ -5,9 +5,10 @@ import torch.nn as nn
 
 RECMODEL=Register("rec_models")
 BACKBONE=Register("backbone")
+LOSS=Register("loss")
 PARSERS=Register("parsers")
 NORMLIZATION=Register("normlization")
 NORMLIZATION.register_module("BN", nn.BatchNorm2d, force=True)
 
+CLS_HEAD=Register("cls_head")
 CLASSIFIER=Register("classifier")
-CLASSIFIER.register_module("Linear", nn.Linear, force=True)

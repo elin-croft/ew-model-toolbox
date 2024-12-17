@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 class Adapter(metaclass=ABCMeta):
     def __init__(self):
-        pass
+        self.arg_name = self.__class__.__name__
     def to_pair_list(self):
         return [(k, v) for k, v in self.__dict__.items()]
     def to_map(self):

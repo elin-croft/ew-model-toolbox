@@ -1,1 +1,1 @@
-from .cnn_args import VggArgs
+from .vgg_args import *

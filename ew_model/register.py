@@ -41,13 +41,31 @@ class Register:
     
     def build(self, cfg: dict):
         # TODO: cfg should be a dict that each key is a model or layer or loss name
+
+        if "model_name" not in cfg.keys():
+            raise KeyError("please set model_name before you build it, type should be map<str, str>")
         model_name = cfg.get('model_name') 
+        if model_name is None:
+            raise KeyError(f"{model_name} is not in register, please check if your model has been propertly registered")
         args = cfg.copy()
         args.pop('model_name')
+
         try:
             obj_cls = self.get(model_name)
         except KeyError as e:
             print(f"build {self.name} error: {str(e)}")
         return obj_cls(**args)
+    def build_args(self, name, args: str):
+        arg_cls = self.get(name=name)
+        if arg_cls is None:
+            raise KeyError(f"{name} is not in register, please check if your model has been propertly registered")
+        
+        args = args.replace("\n", " ").strip().split(" ")
+        obj = arg_cls(args)
+        argMap = obj.format_args()
+        if "arg_name" in argMap.keys():
+            argMap.pop('arg_name')
+        return argMap
+
 
 PARENT_REGISTER=Register("parent_register")

@@ -31,7 +31,7 @@ class BaseCNN(nn.Module):
         return self.module(out)
 
 @BACKBONE.register_module()
-class Vgg(nn.Module):
+class VggBackbone(nn.Module):
     def __init__(self, 
         kernel_size = 3,
         channels = [64, 64, 128, 128, 256, 256, 256, 256, 512, 512, 512, 512, 512, 512, 512, 512],

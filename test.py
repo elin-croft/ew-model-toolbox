@@ -5,9 +5,8 @@ import torch
 torch.set_default_device("mps")
 dummy = torch.randn((10,3,224,224))
 
-from configs.vgg_config import VGG
-args = models.PARSERS.get("VggArgs")(VGG)
-res = args.format_args()
-vgg = models.BACKBONE.get('Vgg')(**res)
-out = vgg(dummy)
+import configs.vgg_config as vgg_config
+args = vgg_config.compose()
+model = models.CLASSIFIER.build(args)
+out = model(dummy)
 print(out.shape)
