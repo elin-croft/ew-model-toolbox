@@ -18,3 +18,7 @@ class Vgg(nn.Module):
         out = self.flatten(out)
         out = self.head(out)
         return out
+    
+    @torch.no_grad()
+    def predict(self, x):
+        return self.forward(x)

@@ -8,5 +8,5 @@ dummy = torch.randn((10,3,224,224))
 import configs.vgg_config as vgg_config
 args = vgg_config.compose()
 model = models.CLASSIFIER.build(args)
-out = model(dummy)
+out = model.predict(dummy)
 print(out.shape)

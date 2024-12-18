@@ -55,6 +55,7 @@ class Register:
         except KeyError as e:
             print(f"build {self.name} error: {str(e)}")
         return obj_cls(**args)
+
     def build_args(self, name, args: str):
         arg_cls = self.get(name=name)
         if arg_cls is None:
