@@ -7,8 +7,9 @@ VGGBACKBONE = f"""
 --stride 1
 --padding 1
 --norm BN
---activations Relu
+--activation Relu
 --pooling max_2-2-2
+--pooling_position 1 3 7 11 15
 """
 
 HEAD = f"""

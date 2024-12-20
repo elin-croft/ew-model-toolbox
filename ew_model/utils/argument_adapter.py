@@ -13,16 +13,13 @@ class Adapter(metaclass=ABCMeta):
     def to_map(self):
         return {k:v for k, v in self.__dict__.items()}
 
-    def parse_args(self, args=None):
-        parser = self.get_parser()
-        args = parser.parse_args(args=args)
-        self.module_name = args.module_name
-        return args
-    
     def get_parser(self)->argparse.ArgumentParser:
         parser = argparse.ArgumentParser(description=f"{self.arg_name} configs")
-        parser.add_argument("--module_name", type=str, default=None, help="model name")
         return parser
+
+    @abstractmethod
+    def add_argument(self, parser: argparse.ArgumentParser):
+        pass
 
     def format_args(self, to_map=True):
         assert self.module_name is not None
@@ -31,7 +28,15 @@ class Adapter(metaclass=ABCMeta):
         else:
             return self.to_pair_list()
     
-    def __call__(self, args=None, **kwds):
-        arg = self.parse_args(args=args)
-        self.module_name = arg.module_name
-        return self.format_args()
+    def __call__(self, args=None, to_map=True, **kwds):
+        parser = self.get_parser()
+        parser.add_argument("--module_name", type=str, default=None, help="model name")
+        self.add_argument(parser)
+        namespace = parser.parse_args(args=args)
+        for k, v in vars(namespace).items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            else:
+                raise Exception(f"variable {k} is not in class {self.arg_name}")
+
+        return self.format_args(to_map=to_map)
