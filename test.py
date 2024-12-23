@@ -8,9 +8,9 @@ label = torch.randint(0,1000,(10,))
 
 import configs.vgg_config as vgg_config
 args = vgg_config.compose()
-model = models.CLASSIFIER.build(args['model'])
+model = models.build_classifier(args['model'])
 out = model(dummy)
-loss = models.LOSS.build(args['loss'])
+loss = models.build_loss(args['loss'])
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 l = loss(out, label)
 optimizer.zero_grad()

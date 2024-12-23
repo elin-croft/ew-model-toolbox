@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from ew_model.builder import CLS_HEAD
+from ew_model.builder import HEAD
 
-@CLS_HEAD.register_module()
+@HEAD.register_module()
 class Linear(nn.Module):
     def __init__(self, in_channel=512*7*7,
                  hidden_channels=[4090, 4090, 4090],

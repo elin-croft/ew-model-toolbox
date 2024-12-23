@@ -1,5 +1,3 @@
-# from .models import BACKBONE, RECMODEL
-# from .losses import LOSS
 from .register import Register
 import torch.nn as nn
 
@@ -10,5 +8,17 @@ PARSERS=Register("parsers")
 NORMLIZATION=Register("normlization")
 NORMLIZATION.register_module("BN", nn.BatchNorm2d, force=True)
 
-CLS_HEAD=Register("cls_head")
+HEAD=Register("head")
 CLASSIFIER=Register("classifier")
+
+def build_classifier(cfg):
+    return CLASSIFIER.build(cfg)
+
+def build_backbone(cfg):
+    return BACKBONE.build(cfg)
+
+def build_head(cfg):
+    return HEAD.build(cfg)
+
+def build_loss(cfg):
+    return LOSS.build(cfg)
