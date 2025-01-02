@@ -1,0 +1,1 @@
+from .transforms.resize import Resize
