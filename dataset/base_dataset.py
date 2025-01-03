@@ -4,12 +4,10 @@ from torchvision.transforms import transforms
 
 class BaseDataset(Dataset):
     def __init__(self,
-        path: str = None,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
     ):
         super().__init__()
-        self.path = path
         self.datas = []
         self.targets = []
         self.transform = transform
