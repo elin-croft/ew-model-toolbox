@@ -1,6 +1,5 @@
 from typing import Optional, Callable
 from torch.utils.data import Dataset
-from torchvision.transforms import transforms
 
 class BaseDataset(Dataset):
     def __init__(self,
@@ -26,3 +25,15 @@ class BaseDataset(Dataset):
     
     def __len__(self):
         return len(self.datas)
+
+    @property
+    def classes(self):
+        if hasattr(self, "classes"):
+            return self.classes
+        return None
+
+    @property
+    def class_to_idx(self):
+        if hasattr(self, "class_to_idx"):
+            return self.class_to_idx
+        return None

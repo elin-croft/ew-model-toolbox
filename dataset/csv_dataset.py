@@ -21,6 +21,7 @@ class CsvDataset(BaseDataset):
     
     def load_csv(self, path):
         paths = []
+        labels = []
         prefix = ""
         if self.is_relative and path.endswith(".csv"):
             prefix = os.path.split(path)[0]
@@ -31,14 +32,19 @@ class CsvDataset(BaseDataset):
                 path = os.path.join(prefix, row["path"])
                 label = row["label"]
                 paths.append(path)
-                self.targets.append(label)
-        return paths
+                labels.append(label)
+
+        return paths, labels
     
     def get_data(self, path):
-        img_paths = self.load_csv(path)
-        for path in img_paths:
+        # reset datas and targets
+        self.datas = []
+        self.targets = []
+        data_paths, data_labels = self.load_csv(path)
+        for path, label in zip(data_paths, data_labels):
             img = cv2.imread(path)
             # np(h,w,c) -> tensor(1, c,h,w)
             img = torch.tensor(np.transpose(img, (2, 0, 1))).unsqueeze(0)
-            self.datas.append(img)
+            label = torch.tensor(list(map(int, label.split(","))))
+
         self.datas = torch.concat(self.datas, dim=0)
