@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from ew_model.builder import CLASSIFIER, build_backbone, build_head
+from ew_model.builder import MODEL, build_backbone, build_head
 
-@CLASSIFIER.register_module()
+@MODEL.register_module()
 class Vgg(nn.Module):
     def __init__(self,
                  backbone,

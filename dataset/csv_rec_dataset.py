@@ -4,10 +4,9 @@ from typing import Optional, Callable
 from collections import OrderedDict
 
 import torch
-import numpy as np
 
 from .csv_dataset import CsvDataset
-from .rec_feature_item import FeatureItem
+from common.feature import FeatureItem
 
 
 class CsvRecDataset(CsvDataset):
@@ -34,8 +33,7 @@ class CsvRecDataset(CsvDataset):
                     feature = OrderedDict()
                     for block_id in block_ids:
                         feature[block_id] = data['feature'][str(block_id)]
-                    label = data['label']
+                    label = data.get("label", list(map(int, label.split(","))))
                     featureItem = FeatureItem(ordered_feature=feature, label=label)
             self.datas.append(featureItem)
             self.targets.append(label)
-

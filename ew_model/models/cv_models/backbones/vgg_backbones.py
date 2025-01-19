@@ -62,7 +62,7 @@ class VggBackbone(nn.Module):
         paddings = convert2list(padding, "padding", int)
         norms = convert2list(norm, "norm", str)
         activations = convert2list(activation, "activation", str)
-        poolings = convert2list(pooling, "pooling", int, pooling_position)
+        poolings = convert2list(pooling, "pooling", str, pooling_position)
         pooling_position=set(pooling_position)
 
         # make layers

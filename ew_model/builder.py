@@ -1,4 +1,4 @@
-from .register import Register
+from common.register import Register
 import torch.nn as nn
 
 RECMODEL=Register("rec_models")
@@ -9,10 +9,10 @@ NORMLIZATION=Register("normlization")
 NORMLIZATION.register_module("BN", nn.BatchNorm2d, force=True)
 
 HEAD=Register("head")
-CLASSIFIER=Register("classifier")
+MODEL=Register("models")
 
-def build_classifier(cfg):
-    return CLASSIFIER.build(cfg)
+def build_model(cfg):
+    return MODEL.build(cfg)
 
 def build_backbone(cfg):
     return BACKBONE.build(cfg)
