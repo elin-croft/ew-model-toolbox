@@ -13,13 +13,11 @@ class CsvRecDataset(CsvDataset):
     def __init__(self,
         path:str = None,
         is_relative:bool = True,
-        is_map:bool = False,
         transform:Optional[Callable] = None, target_transform:Optional[Callable] = None,
         hook:Optional[Callable] = None,
         **kwargs
     ):
         super().__init__(path, is_relative, transform, target_transform, hook)
-        self.is_map = is_map
     
     def load_csv(self, path):
         return super().load_csv(path)
@@ -42,14 +40,11 @@ class CsvRecDataset(CsvDataset):
                     for block_id in block_ids:
                         feature[block_id] = data['feature'][str(block_id)]
                     label = torch.tensor(data.get("label", list(map(int, label.split(",")))))
-                    featureItem = FeatureItem(ordered_feature=feature, label=label)
+                    featureItem = FeatureItem(ordered_feature=feature, label=label, is_map=True)
             self.datas.append(featureItem)
             self.targets.append(label)
     
     def __getitem__(self, index):
         featureItem, label = self.datas[index], self.targets[index]
-        data, _ = featureItem.get_feature(is_map=self.is_map)
+        data, _ = featureItem.feature
         return data, label
-    
-    def to(self, device):
-        return super().to(device, is_map=self.is_map)

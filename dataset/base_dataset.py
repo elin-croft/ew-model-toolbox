@@ -45,10 +45,9 @@ class BaseDataset(Dataset):
                 data[k] = v
 
         elif isinstance(data, FeatureItem):
-            is_map = kwargs.get("is_map", )
-            real_data, _ = data.get_feature(is_map=is_map)
-            real_data_device = self.__set_device(real_data, device, is_map=is_map)
-            data.set_feature(real_data_device, is_map=is_map)
+            real_data, _ = data.feature
+            real_data_device = self.__set_device(real_data, device)
+            data.feature = real_data_device
 
         else:
             logging.warning(f"Unsupported data type: {type(data)}")
