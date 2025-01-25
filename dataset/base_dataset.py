@@ -1,7 +1,10 @@
 from typing import Optional, Callable
+import logging
 
 import torch
 from torch.utils.data import Dataset
+
+from common.feature import FeatureItem
 
 class BaseDataset(Dataset):
     def __init__(self,
@@ -28,27 +31,33 @@ class BaseDataset(Dataset):
     def __len__(self):
         return len(self.datas)
 
-    def __set_device(self, data, device):
+    def __set_device(self, data, device, **kwargs):
         if isinstance(data, torch.Tensor):
             data = data.to(device)
-            return data
 
         elif isinstance(data, list):
             for i in range(len(data)):
-                data[i] = self.__set_device(data[i], device)
-            return data
+                data[i] = self.__set_device(data[i], device, **kwargs)
 
         elif isinstance(data, dict):
             for k, v in data.items():
-                v = self.__set_device(v, device)
+                v = self.__set_device(v, device, **kwargs)
                 data[k] = v
-            return data
-        else:
-            raise ValueError("data type should be tensor or list of tensor")
 
-    def to(self, device):
-        self.datas = self.__set_device(self.datas, device)
-        self.targets = self.__set_device(self.targets, device)
+        elif isinstance(data, FeatureItem):
+            is_map = kwargs.get("is_map", )
+            real_data, _ = data.get_feature(is_map=is_map)
+            real_data_device = self.__set_device(real_data, device, is_map=is_map)
+            data.set_feature(real_data_device, is_map=is_map)
+
+        else:
+            logging.warning(f"Unsupported data type: {type(data)}")
+
+        return data
+
+    def to(self, device, **kwargs):
+        self.datas = self.__set_device(self.datas, device, **kwargs)
+        self.targets = self.__set_device(self.targets, device, **kwargs)
         return self
 
     @property

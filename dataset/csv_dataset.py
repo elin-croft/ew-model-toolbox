@@ -12,7 +12,9 @@ class CsvDataset(BaseDataset):
     def __init__(self,
         path: str = None, is_relative:bool = True,
         transform:Optional[Callable] = None, target_transform:Optional[Callable] = None,
-        hook:Optional[Callable] = None):
+        hook:Optional[Callable] = None,
+        **kwargs
+    ):
         super().__init__(transform, target_transform)
         self.is_relative = is_relative
         self.get_data(path)
