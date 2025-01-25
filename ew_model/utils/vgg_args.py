@@ -1,11 +1,10 @@
-import argparse
-from .parsers import kernel_size_parser, tuple_list_parser
-from .argument_adapter import Adapter
+from common.argument_parser import kernel_size_parser, tuple_list_parser
+from common.argument_parser import BaseParser
 from ew_model.builder import PARSERS
 from typing import List, Tuple
 
 @PARSERS.register_module()
-class VggBackboneArgs(Adapter):
+class VggBackboneArgs(BaseParser):
     def __init__(self):
         super().__init__()
         self.kernel_size = None
@@ -32,7 +31,7 @@ class VggBackboneArgs(Adapter):
 
 
 @PARSERS.register_module()
-class VggHeadArgs(Adapter):
+class VggHeadArgs(BaseParser):
     def __init__(self):
         super().__init__()
         self.in_channel=None

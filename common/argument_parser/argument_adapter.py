@@ -2,7 +2,7 @@ import argparse
 from abc import ABCMeta, abstractmethod
 
 
-class Adapter(metaclass=ABCMeta):
+class BaseParser(metaclass=ABCMeta):
     def __init__(self):
         self.arg_name = self.__class__.__name__
         self.module_name = None
@@ -38,5 +38,10 @@ class Adapter(metaclass=ABCMeta):
                 setattr(self, k, v)
             else:
                 raise Exception(f"variable {k} is not in class {self.arg_name}")
-
-        return self.format_args(to_map=to_map)
+        if to_map:
+            res = {}
+            for k, v in vars(namespace).items():
+                res[k] = v
+            return res
+        else:
+            return [(k, v) for k, v in vars(namespace).items()]
