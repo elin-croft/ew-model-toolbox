@@ -1,6 +1,7 @@
 from common.register import Register
 import torch.nn as nn
 
+INPUT = Register("input")
 RECMODEL=Register("rec_models")
 BACKBONE=Register("backbone")
 LOSS=Register("loss")
@@ -22,3 +23,6 @@ def build_head(cfg):
 
 def build_loss(cfg):
     return LOSS.build(cfg)
+
+def build_input(cfg):
+    return INPUT.build(cfg)
