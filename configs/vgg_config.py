@@ -22,6 +22,9 @@ HEAD = f"""
 def compose():
     backbone_args = PARSERS.build_args("VggBackboneArgs", VGGBACKBONE)
     head_args = PARSERS.build_args("VggHeadArgs", HEAD)
+    train_cfg = dict(
+        device = "mps"
+    )
     model_args = dict(
         module_name="Vgg",
         backbone=backbone_args,
@@ -32,6 +35,7 @@ def compose():
     )
     args = dict(
         model=model_args,
-        loss=loss_args
+        loss=loss_args,
+        train_cfg=train_cfg
     )
     return args

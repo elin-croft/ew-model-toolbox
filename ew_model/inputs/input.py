@@ -16,11 +16,12 @@ class BaseInput(nn.Module):
     
     def build(self):
         for bid, config in self.block_config.items():
+            extra_arg = config.layer_args if config.layer_args is not None else {}
             args = dict(
                 module_name = config.layer_name,
                 size = config.size,
                 emb_size = config.emb_size,
-                **config.layer_args
+                **extra_arg
             )
             self.layer_map[bid] = build_input(args)
     
