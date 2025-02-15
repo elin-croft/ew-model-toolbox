@@ -28,6 +28,7 @@ class Register:
         if name is not None and module is not None:
             if force or self.check_module(name=name):
                 self.__model_cls_map[name]=module
+                return module
             else:
                 raise KeyError(f"{name} has been registered")
 
@@ -37,6 +38,7 @@ class Register:
         def __register(cls):
             name = cls.__name__
             self.__register(name, cls)
+            return cls
         return __register
     
     def build(self, cfg: dict):
