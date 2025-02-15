@@ -2,7 +2,9 @@ import argparse
 import importlib
 import torch
 import torch. nn as nn
+
 from ew_model import build_model, build_loss
+from dataset import build_dataset
 
 class TrainConfig:
     def __init__(self):
@@ -35,9 +37,12 @@ class BaseTrainer:
     def build(self):
         args = self.parse_model_args()
         model = args.get('model')
+        dataset_cfg = args.get("dataset_cfg")
         loss = args.get('loss')
         self.model = build_model(model)
+        self.dataset = build_dataset(dataset_cfg)
         self.loss = build_loss(loss)
+        # TODO: build dataset and optimizer and scheduler
         self.train_cfg = args.get("train_cfg")
         self.device = self.train_cfg.get("device", "cpu")
         self.model.to(self.device)

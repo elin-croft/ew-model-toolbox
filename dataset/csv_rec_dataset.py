@@ -7,8 +7,9 @@ import torch
 
 from .csv_dataset import CsvDataset
 from common.feature import FeatureItem
+from .builder import DATASET
 
-
+@DATASET.register_module()
 class CsvRecDataset(CsvDataset):
     def __init__(self,
         path:str = None,

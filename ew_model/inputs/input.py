@@ -25,12 +25,16 @@ class BaseInput(nn.Module):
             )
             self.layer_map[bid] = build_input(args)
     
-    def forward(self, x: dict):
+    def forward(self, x: Dict[int, torch.Tensor]):
         out = []
-        for block_id in self.block_ids:
-            value = x.get(int(block_id))
-            layer = self.layer_map[block_id]
-            out.append(layer(value))
-        out = torch.cat(out, dim=1)
+        # TODO: handle miss feature
+        try:
+            for block_id in self.block_ids:
+                value = x[int(block_id)]
+                layer = self.layer_map[block_id]
+                out.append(layer(value))
+            out = torch.cat(out, dim=1)
+        except KeyError as e:
+            raise KeyError(f"block_id {block_id} not in ")
 
         return out

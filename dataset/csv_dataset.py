@@ -7,7 +7,9 @@ import numpy as np
 import torch
 
 from .base_dataset import BaseDataset
+from .builder import DATASET
 
+@DATASET.register_module()
 class CsvDataset(BaseDataset):
     def __init__(self,
         path: str = None, is_relative:bool = True,

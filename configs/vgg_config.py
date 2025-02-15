@@ -19,12 +19,13 @@ HEAD = f"""
 --class_num 1000
 """
 
+def hook(obj:object):
+    obj.__setattr__("label_map",{str(i): i for i in range(1000)})
+    print(obj.label_map)
+
 def compose():
     backbone_args = PARSERS.build_args("VggBackboneArgs", VGGBACKBONE)
     head_args = PARSERS.build_args("VggHeadArgs", HEAD)
-    train_cfg = dict(
-        device = "mps"
-    )
     model_args = dict(
         module_name="Vgg",
         backbone=backbone_args,
@@ -33,9 +34,24 @@ def compose():
     loss_args = dict(
         module_name="CrossEntropy"
     )
+    dataset_cfg = dict(
+        module_name="CsvDataset",
+        path="/Users/elinwang/Documents/dataset.csv",
+        hook=hook
+    )
+    # train param config
+    train_cfg = dict(
+        device = "mps"
+    )
+    # test param config
+    test_cfg = dict(
+        device = "mps"
+    )
     args = dict(
         model=model_args,
         loss=loss_args,
-        train_cfg=train_cfg
+        dataset_cfg=dataset_cfg,
+        train_cfg=train_cfg,
+        test_cfg=test_cfg
     )
     return args
