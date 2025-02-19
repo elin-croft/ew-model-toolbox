@@ -13,6 +13,7 @@ class BaseInput(nn.Module):
         self.block_ids = sorted([int(i) for i in block_config.keys()])
         self.block_config = block_config
         self.layer_map = nn.ModuleDict()
+        self.build()
     
     def build(self):
         for bid, config in self.block_config.items():
@@ -24,6 +25,10 @@ class BaseInput(nn.Module):
                 **extra_arg
             )
             self.layer_map[bid] = build_input(args)
+
+    @property
+    def shape(self):
+        return sum([i.shape for i in self.layer_map.values()])
     
     def forward(self, x: Dict[int, torch.Tensor]):
         out = []

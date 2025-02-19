@@ -11,5 +11,9 @@ class Embedding(nn.Module):
         self.emb_size = emb_size
         self.layer = nn.Linear(size, emb_size)
     
+    @property
+    def shape(self):
+        return self.emb_size
+
     def forward(self, x):
         return self.layer(x)
