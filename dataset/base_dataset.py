@@ -16,6 +16,9 @@ class BaseDataset(Dataset):
         self.targets = []
         self.transform = transform
         self.target_transform = target_transform
+        self.__block_config = None
+        self.__classes = None
+        self.__classes_to_idx = None
 
     def __getitem__(self, index):
         """
@@ -61,18 +64,30 @@ class BaseDataset(Dataset):
 
     @property
     def classes(self):
-        if hasattr(self, "classes"):
-            return self.classes
+        if hasattr(self, "__classes"):
+            return self.__classes
         return None
+    
+    @classes.setter
+    def classes(self, classes):
+        self.__classes = classes
 
     @property
     def class_to_idx(self):
-        if hasattr(self, "class_to_idx"):
-            return self.class_to_idx
+        if hasattr(self, "__class_to_idx"):
+            return self.__class_to_idx
         return None
+    
+    @class_to_idx.setter
+    def class_to_idx(self, class_to_idx):
+        self.__class_to_idx = class_to_idx
 
     @property
     def block_config(self):
-        if hasattr(self, "block_config"):
-            return self.block_config
+        if hasattr(self, "__block_config"):
+            return self.__block_config
         return None
+    
+    @block_config.setter
+    def block_config(self, block_config):
+        self.__block_config = block_config

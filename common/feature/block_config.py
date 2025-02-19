@@ -6,7 +6,7 @@ class BlockConfig:
         common = False,
         dense = False,
         size: int = None, emb_size: int = None,
-        layer_name: str = None, layer_args: dict = None,
+        layer_name: str = 'Embedding', layer_args: dict = None,
         allow_shorter = True, default_value = 0
     ):
         self.block_id = block_id

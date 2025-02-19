@@ -21,9 +21,10 @@ HEAD = f"""
 
 def hook(obj:object):
     obj.__setattr__("label_map",{str(i): i for i in range(1000)})
-    print(obj.label_map)
+    # print(obj.label_map)
 
-def compose():
+#  python train.py --model_config_path configs/vgg_config.py
+def Compose():
     backbone_args = PARSERS.build_args("VggBackboneArgs", VGGBACKBONE)
     head_args = PARSERS.build_args("VggHeadArgs", HEAD)
     model_args = dict(
@@ -48,8 +49,8 @@ def compose():
         device = "mps"
     )
     args = dict(
-        model=model_args,
-        loss=loss_args,
+        model_cfg=model_args,
+        loss_cfg=loss_args,
         dataset_cfg=dataset_cfg,
         train_cfg=train_cfg,
         test_cfg=test_cfg

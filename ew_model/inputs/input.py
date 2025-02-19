@@ -24,7 +24,7 @@ class BaseInput(nn.Module):
                 emb_size = config.emb_size,
                 **extra_arg
             )
-            self.layer_map[bid] = build_input(args)
+            self.layer_map[str(bid)] = build_input(args)
 
     @property
     def shape(self):
@@ -35,11 +35,13 @@ class BaseInput(nn.Module):
         # TODO: handle miss feature
         try:
             for block_id in self.block_ids:
-                value = x[int(block_id)]
-                layer = self.layer_map[block_id]
+                value = x[block_id]
+                layer = self.layer_map[str(block_id)]
+                if value.ndim == 1:
+                    value = value.unsqueeze(0)
                 out.append(layer(value))
             out = torch.cat(out, dim=1)
         except KeyError as e:
-            raise KeyError(f"block_id {block_id} not in ")
+            raise KeyError(f"block_id {block_id} not in input data")
 
         return out
