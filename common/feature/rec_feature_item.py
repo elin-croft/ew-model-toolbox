@@ -64,6 +64,8 @@ class FeatureItem:
                 allow_shorter = cfg.allow_shorter
                 default_value = cfg.default_value
                 v = data_padding_1d(v, size, allow_shorter, default_value)
+            else:
+                logging.warning(f"block: {block_id} not in config")
             new_data[k] = v
         self.feature = new_data
         self.ori_ordered_feature = ori_data

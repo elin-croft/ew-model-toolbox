@@ -1,0 +1,28 @@
+from .model_param import model_cfg
+from .block_config import config
+
+def hook(obj:object):
+    obj.block_config={i.block_id: i for i in config}
+
+def Compose():
+    args = dict(
+        model_cfg=model_cfg,
+        loss_cfg=dict(
+            module_name="CrossEntropy"
+        ),
+        dataset_cfg=dict(
+            module_name="CsvRecDataset",
+            path="/Users/elinwang/Documents/rec_dataset.csv",
+            is_map=True,
+            hook=hook
+        ),
+        # train param config
+        train_cfg = dict(
+            device = "mps"
+        ),
+        # test param config
+        test_cfg = dict(
+            device = "mps"
+        )
+    )
+    return args
