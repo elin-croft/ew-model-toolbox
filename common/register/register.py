@@ -1,5 +1,6 @@
 import os, sys
 from abc import ABCMeta
+import logging
 
 class Register:
     def __init__(self, name, parent=None):
@@ -12,7 +13,7 @@ class Register:
             raise KeyError(f"{name} hasn't been registered yet")
         return module
 
-    def check_module(self, name):
+    def has_module(self, name):
         if self.__model_cls_map.get(name) is None:
             return False
         else:
@@ -26,13 +27,18 @@ class Register:
 
     def register_module(self, name=None, module=None, force=False):
         if name is not None and module is not None:
-            if force or self.check_module(name=name):
-                self.__model_cls_map[name]=module
-                return module
+            has = self.has_module(name=name)
+            if has:
+                if force:
+                    msg = f"module {name} will be registered in force and the old module will be replaced"
+                    logging.warning(msg)
+                    return self.__register(name, module)
+                else:
+                    raise KeyError(f"{name} has been registered")
             else:
-                raise KeyError(f"{name} has been registered")
+                return self.__register(name, module)
 
-        if not force and self.check_module(name):
+        if not force and self.has_module(name):
             raise KeyError(f"{name} has been registered")
 
         def __register(cls):
