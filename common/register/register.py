@@ -27,15 +27,16 @@ class Register:
 
     def register_module(self, name=None, module=None, force=False):
         if name is not None and module is not None:
-            if force:
-                has = self.has_module(name=name)
-                msg = f"module {name} will be registered in force."
-                has_module_msg = f"module {name} has been registered, so it will be replaced"
-                self.__model_cls_map[name]=module
-                if has:
-                    msg = msg + " " + has_module_msg
-                logging.warning(msg)
-                return module
+            has = self.has_module(name=name)
+            if has:
+                if force:
+                    msg = f"module {name} will be registered in force and the old module will be replaced"
+                    logging.warning(msg)
+                    return self.__register(name, module)
+                else:
+                    raise KeyError(f"{name} has been registered")
+            else:
+                return self.__register(name, module)
 
         if not force and self.has_module(name):
             raise KeyError(f"{name} has been registered")
