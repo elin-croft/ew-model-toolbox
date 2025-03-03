@@ -26,8 +26,8 @@ def hook(obj:object):
 
 from torch.utils.data import DataLoader
 from dataset import DATASET
-# dataset = CsvDataset(path="/Users/elinwang/Documents/dataset.csv", hook=hook).to(device)
-dataset = CsvRecDataset(path="/Users/elinwang/Documents/rec_dataset.csv", hook=hook, is_map=True).to(device)
+# dataset = CsvDataset(path=os.path.join(os.path.expanduser("~"), "Documents/dataset.csv"), hook=hook).to(device)
+dataset = CsvRecDataset(path=os.path.join(os.path.expanduser("~"), "Documents/rec_dataset.csv"), hook=hook, is_map=True).to(device)
 
 # can't set default device to gpu when shuffle is True, for the generator is not supported
 #generator = torch.Generator(device=device)

@@ -25,6 +25,7 @@ def hook(obj:object):
 
 #  python train.py --model_config_path configs/vgg_config.py
 def Compose():
+    import os
     backbone_args = PARSERS.build_args("VggBackboneArgs", VGGBACKBONE)
     head_args = PARSERS.build_args("VggHeadArgs", HEAD)
     model_args = dict(
@@ -37,7 +38,7 @@ def Compose():
     )
     dataset_cfg = dict(
         module_name="CsvDataset",
-        path="/Users/elinwang/Documents/dataset.csv",
+        path=os.path.join(os.path.expanduser("~"), "Documents/dataset.csv"),
         hook=hook
     )
     # train param config

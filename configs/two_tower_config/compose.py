@@ -5,6 +5,7 @@ def hook(obj:object):
     obj.block_config={i.block_id: i for i in config}
 
 def Compose():
+    import os
     args = dict(
         model_cfg=model_cfg,
         loss_cfg=dict(
@@ -12,7 +13,7 @@ def Compose():
         ),
         dataset_cfg=dict(
             module_name="CsvRecDataset",
-            path="/Users/elinwang/Documents/rec_dataset.csv",
+            path=os.path.join(os.path.expanduser("~"),"Documents/rec_dataset.csv"),
             is_map=True,
             hook=hook
         ),

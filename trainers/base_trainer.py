@@ -1,5 +1,7 @@
 import argparse
 import importlib
+import logging
+
 import torch
 import torch. nn as nn
 
@@ -31,7 +33,7 @@ class BaseTrainer:
     def parse_model_args(self):
         self.model_config_path = self.args.path
         module_path = self.model_config_path.replace("/", ".").replace(".py", "")
-        print(module_path)
+        logging.info(f"model config package: {module_path}")
         config = importlib.import_module(module_path)
 
         args = config.Compose()
