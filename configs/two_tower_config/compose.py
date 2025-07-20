@@ -19,7 +19,12 @@ def Compose():
         ),
         # train param config
         train_cfg = dict(
-            device = "mps"
+            device = "mps",
+            batch_size=512,
+            optimizer=dict(
+                module_name="Adam",
+                lr=0.01
+            )
         ),
         # test param config
         test_cfg = dict(

@@ -4,8 +4,9 @@ import logging
 
 import torch
 import torch. nn as nn
+from torch.utils.data import DataLoader
 
-from ew_model import build_model, build_loss
+from ew_model import build_model, build_loss, build_optim
 from dataset import build_dataset
 
 class TrainConfig:
@@ -46,10 +47,17 @@ class BaseTrainer:
         loss = args.get('loss_cfg')
         self.model = build_model(model)
         self.dataset = build_dataset(dataset_cfg)
-        self.loss = build_loss(loss)
         # TODO: build dataset and optimizer and scheduler
+        #TODO: move loss cfg into train
         self.train_cfg = args.get("train_cfg")
         self.device = self.train_cfg.get("device", "cpu")
+        optim_cfg = self.train_cfg.get("optimizer")
+        optim_args = dict(
+            params=self.model.parameters(),
+            **optim_cfg
+        )
+        self.loss = build_loss(loss)
+        self.optim = build_optim(optim_args)
         self.model.to(self.device)
         self.dataset.to(self.device)
 
@@ -74,17 +82,26 @@ class BaseTrainer:
     def model_test(self):
         dummy = torch.randn((10,3,224,224)).to(self.device)
         label = torch.randint(0,1000,(10,)).to(self.device)
-        out = self.model(dummy)
-        print(out.shape)
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01)
-        l = self.loss(out, label)
-        print(l)
-        optimizer.zero_grad()
-        l.backward()
-        optimizer.step()
+        datas = DataLoader(self.dataset, batch_size=1, shuffle=True)
+        for i, (data, label) in enumerate(datas):
+            print(data)
+            out = self.model(data)
+            print(out.shape)
+            l = self.loss(out, label[:,0])
+            print(l)
+            self.optim.zero_grad()
+            l.backward()
+            self.optim.step()
 
     def rec_model_test(self):
-        self.model.eval()
-        for i, (dummy, label) in enumerate(self.dataset):
+        train_data = DataLoader(self.dataset, batch_size=1, shuffle=True)
+        for i, (dummy, label) in enumerate(train_data):
             out = self.model(dummy)
+            print(label)
+            click = label[:, 0]
+            loss = nn.functional.binary_cross_entropy(out, click)
+            self.optim.zero_grad()
+            loss.backward()
+            self.optim.step()
             print(out.shape)
+            print(loss)

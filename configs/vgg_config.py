@@ -1,4 +1,7 @@
+import torchvision
 from ew_model.builder import PARSERS
+from dataset import Compose as piplineCompose
+import dataset.transforms as transforms
 
 VGGBACKBONE = f"""
 --module_name VggBackbone
@@ -39,11 +42,20 @@ def Compose():
     dataset_cfg = dict(
         module_name="CsvDataset",
         path=os.path.join(os.path.expanduser("~"), "Documents/dataset.csv"),
-        hook=hook
+        hook=hook,
+        transform=piplineCompose([
+            transforms.Normalization(min_val=0.0, max_val=255.0),
+            transforms.Resize(size=(224, 224))
+        ])
     )
     # train param config
     train_cfg = dict(
-        device = "mps"
+        device = "cpu",
+        batch_size=32,
+        optimizer=dict(
+            module_name="SGD",
+            lr=0.01
+        )
     )
     # test param config
     test_cfg = dict(

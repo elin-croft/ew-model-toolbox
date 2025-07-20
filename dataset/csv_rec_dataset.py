@@ -40,7 +40,7 @@ class CsvRecDataset(CsvDataset):
                     feature = OrderedDict()
                     for block_id in block_ids:
                         feature[block_id] = data['feature'][str(block_id)]
-                    label = torch.tensor(data.get("label", list(map(int, label.split(",")))))
+                    label = torch.tensor(data.get("label", list(map(float, label.split(",")))),dtype=torch.float32)
                     featureItem = FeatureItem(ordered_feature=feature, label=label, is_map=True)
             self.datas.append(featureItem)
             self.targets.append(label)
