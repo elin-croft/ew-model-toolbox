@@ -80,8 +80,6 @@ class BaseTrainer:
         pass
 
     def model_test(self):
-        dummy = torch.randn((10,3,224,224)).to(self.device)
-        label = torch.randint(0,1000,(10,)).to(self.device)
         datas = DataLoader(self.dataset, batch_size=1, shuffle=True)
         for i, (data, label) in enumerate(datas):
             print(data)

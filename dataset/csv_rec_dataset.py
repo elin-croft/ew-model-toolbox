@@ -45,7 +45,7 @@ class CsvRecDataset(CsvDataset):
             self.datas.append(featureItem)
             self.targets.append(label)
     
-    def __getitem__(self, index):
+    def fetch_data(self, index):
         featureItem, label = self.datas[index], self.targets[index]
         data, _ = featureItem.feature
         return data, label

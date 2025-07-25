@@ -50,7 +50,7 @@ def Compose():
     )
     # train param config
     train_cfg = dict(
-        device = "cpu",
+        device = "mps",
         batch_size=32,
         optimizer=dict(
             module_name="SGD",

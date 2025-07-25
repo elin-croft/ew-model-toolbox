@@ -12,6 +12,7 @@ class BaseDataset(Dataset):
         target_transform: Optional[Callable] = None,
     ):
         super().__init__()
+        self.device='cpu'
         self.datas = []
         self.targets = []
         self.transform = transform
@@ -20,15 +21,20 @@ class BaseDataset(Dataset):
         self.__classes = None
         self.__classes_to_idx = None
 
+    def fetch_data(self, index):
+        return self.datas[index], self.targets[index]
+
     def __getitem__(self, index):
         """
         base get item mothod for dataset class
         """
-        data, target = self.datas[index], self.targets[index]
+        data, target = self.fetch_data(index)
         if self.transform is not None:
             data = self.transform(data)
         if self.target_transform is not None:
             target = self.target_transform(target)
+        data = self.__set_device(data, self.device)
+        target = self.__set_device(target, self.device)
         return data, target
     
     def __len__(self):
@@ -57,9 +63,13 @@ class BaseDataset(Dataset):
 
         return data
 
-    def to(self, device, **kwargs):
+    def __to(self, device, **kwargs):
         self.datas = self.__set_device(self.datas, device, **kwargs)
         self.targets = self.__set_device(self.targets, device, **kwargs)
+        return self
+    
+    def to(self, device):
+        self.device = device
         return self
 
     @property

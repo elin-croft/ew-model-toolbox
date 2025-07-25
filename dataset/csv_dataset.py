@@ -48,9 +48,9 @@ class CsvDataset(BaseDataset):
         for path, label in zip(data_paths, data_labels):
             img = cv2.imread(path)
             # np(h,w,c) -> tensor(1, c,h,w)
-            img = torch.tensor(np.transpose(img, (2, 0, 1))).unsqueeze(0)
+            img = torch.tensor(np.transpose(img, (2, 0, 1)))
             label = torch.tensor(list(map(int, label.split(","))))
             self.datas.append(img)
             self.targets.append(label)
 
-        self.datas = torch.concat(self.datas, dim=0)
+        #self.datas = torch.concat(self.datas, dim=0)
