@@ -12,15 +12,18 @@ from dataset import build_dataset
 class TrainConfig:
     def __init__(self):
         self.path = None
-        self.get_model_config()
+        self.args = self.get_model_config()
 
     def get_model_config(self):
         parser = argparse.ArgumentParser(description="model config")
         parser.add_argument("--model_config_path", type=str, default=None, help="model config path")
+        parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
+        #parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
         args = parser.parse_args()
         self.path = args.model_config_path
         if self.path.endswith("/"):
             self.path = self.path[:-1]
+        return args
 
 
 class BaseTrainer:
@@ -78,6 +81,18 @@ class BaseTrainer:
 
     def test(self):
         pass
+
+    def save_model(self):
+        if hasattr(self.model, 'save'):
+            self.model.save()
+        else:
+            from io import BytesIO
+            import os
+            buffer = BytesIO()
+            torch.save(self.model, buffer)
+            path = os.path.join("", "model.pth")
+            with open(path, 'wb') as f:
+                f.write(buffer.getvalue())
 
     def model_test(self):
         datas = DataLoader(self.dataset, batch_size=1, shuffle=True)

@@ -1,5 +1,6 @@
 import os, sys
 from abc import ABCMeta
+import inspect
 import logging
 
 class Register:
@@ -24,6 +25,7 @@ class Register:
 
     def __register(self, name, module):
         self.__model_cls_map[name] = module
+        return module
 
     def register_module(self, name=None, module=None, force=False):
         if name is not None and module is not None:
@@ -62,7 +64,12 @@ class Register:
             obj_cls = self.get(module_name)
         except KeyError as e:
             print(f"build {self.name} error: {str(e)}")
-        return obj_cls(**args)
+        if inspect.isclass(obj_cls):
+            return obj_cls(**args)
+        elif inspect.isfunction(obj_cls):
+            return obj_cls
+        else:
+            raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
 
     def build_args(self, name, args: str):
         arg_cls = self.get(name=name)
