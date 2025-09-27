@@ -29,3 +29,15 @@ def build_from_cfg(cfg: dict, register: 'Register'):
         return obj_cls
     else:
         raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
+
+def build_colate_fn_from_cfg(cfg: dict, register: 'Register'):
+    """
+    Build a colate function from config dict
+    This function will return a lambda colate function for Dataloader
+    """
+    colate_fn = build_from_cfg(cfg, register)
+    args = cfg.copy()
+    args.pop('module_name')
+    if not callable(colate_fn):
+        raise TypeError(f"colate_fn must be callable, but got {type(colate_fn)}")
+    return lambda x: colate_fn(x, **args)
