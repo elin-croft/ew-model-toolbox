@@ -1,3 +1,9 @@
+import os, sys
+
+cwd = s=os.getcwd()
+if cwd not in sys.path:
+    sys.path.append(cwd)
+
 import argparse
 import importlib
 import logging
@@ -8,6 +14,7 @@ from torch.utils.data import DataLoader
 
 from ew_model import build_model, build_loss, build_optim
 from dataset import build_dataset
+from io import BytesIO
 
 class TrainConfig:
     def __init__(self):
@@ -16,7 +23,7 @@ class TrainConfig:
 
     def get_model_config(self):
         parser = argparse.ArgumentParser(description="model config")
-        parser.add_argument("--model_config_path", type=str, default=None, help="model config path")
+        parser.add_argument("--model_config_path", type=str, default="configs/two_tower_config", help="model config path")
         parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
         #parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
         args = parser.parse_args()
@@ -33,6 +40,7 @@ class BaseTrainer:
         self.loss = None
         self.train_cfg = None
         self.device = 'cpu'
+        self.build()
     
     def parse_model_args(self):
         self.model_config_path = self.args.path
@@ -64,35 +72,25 @@ class BaseTrainer:
         self.model.to(self.device)
         self.dataset.to(self.device)
 
-    def train_step(self):
-        pass
-
-    def val_step(self):
-        pass
-
-    def test_step(self):
-        pass
-
-    def train(self):
-        pass
-
-    def val(self):
-        pass
-
-    def test(self):
-        pass
+    def run(self):
+        self.export_model()
 
     def save_model(self):
-        if hasattr(self.model, 'save'):
-            self.model.save()
-        else:
-            from io import BytesIO
-            import os
-            buffer = BytesIO()
-            torch.save(self.model, buffer)
-            path = os.path.join("", "model.pth")
-            with open(path, 'wb') as f:
-                f.write(buffer.getvalue())
+        buffer = BytesIO()
+        torch.save(self.model.state_dict(), buffer)
+        path = os.path.join("", "model.pth")
+        with open(path, 'wb') as f:
+            f.write(buffer.getvalue())
+
+    def load_model(self, path='model.pth'):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"model path {path} not exists")
+        with open(path, 'rb') as f:
+            byte = BytesIO(f.read())
+            self.model.load_state_dict(torch.load(byte, weights_only=True))
+    
+    def export_model(self, path='model.onnx'):
+        self.model.export(path)
 
     def model_test(self):
         datas = DataLoader(self.dataset, batch_size=1, shuffle=True)
@@ -118,3 +116,7 @@ class BaseTrainer:
             self.optim.step()
             print(out.shape)
             print(loss)
+
+if __name__ == "__main__":
+    trainer = BaseTrainer()
+    trainer.run()

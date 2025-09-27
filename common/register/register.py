@@ -2,11 +2,16 @@ import os, sys
 from abc import ABCMeta
 import inspect
 import logging
+from .build_functions import *
 
 class Register:
-    def __init__(self, name, parent=None):
+    def __init__(self, name, build_func=None, parent=None):
         self.name = name
         self.__model_cls_map = dict()
+        if build_func is None:
+            self.build_func = build_from_cfg
+        else:
+            self.build_func = build_func
     
     def get(self, name):
         module = self.__model_cls_map[name]
@@ -52,24 +57,25 @@ class Register:
     def build(self, cfg: dict):
         # TODO: cfg should be a dict that each key is a model or layer or loss name
 
-        if "module_name" not in cfg.keys():
-            raise KeyError("please set module_name before you build it, type should be map<str, str>")
-        module_name = cfg.get('module_name') 
-        if module_name is None:
-            raise KeyError(f"{module_name} is not in register, please check if your model has been propertly registered")
-        args = cfg.copy()
-        args.pop('module_name')
+        # if "module_name" not in cfg.keys():
+        #     raise KeyError("please set module_name before you build it, type should be map<str, str>")
+        # module_name = cfg.get('module_name') 
+        # if module_name is None:
+        #     raise KeyError(f"{module_name} is not in register, please check if your model has been propertly registered")
+        # args = cfg.copy()
+        # args.pop('module_name')
 
-        try:
-            obj_cls = self.get(module_name)
-        except KeyError as e:
-            print(f"build {self.name} error: {str(e)}")
-        if inspect.isclass(obj_cls):
-            return obj_cls(**args)
-        elif inspect.isfunction(obj_cls):
-            return obj_cls
-        else:
-            raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
+        # try:
+        #     obj_cls = self.get(module_name)
+        # except KeyError as e:
+        #     print(f"build {self.name} error: {str(e)}")
+        # if inspect.isclass(obj_cls):
+        #     return obj_cls(**args)
+        # elif inspect.isfunction(obj_cls):
+        #     return obj_cls
+        # else:
+        #     raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
+        return self.build_func(cfg, self)
 
     def build_args(self, name, args: str):
         arg_cls = self.get(name=name)

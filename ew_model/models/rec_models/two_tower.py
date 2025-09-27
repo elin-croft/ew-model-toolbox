@@ -29,7 +29,7 @@ class TwoTowerModel(nn.Module):
         for size in fc_sizes:
             layers.append(nn.Linear(in_channel, size))
             # disable batchnorm when batch size is 1 and model is in train mode
-            layers.append(nn.BatchNorm1d(size))
+            #layers.append(nn.BatchNorm1d(size))
             layers.append(nn.ReLU())
             in_channel = size
         return nn.Sequential(*layers)
@@ -55,7 +55,7 @@ class TwoTowerModel(nn.Module):
         self.user_tower = self.make_layer(user_emb_dim, self.user_fc)
         self.item_tower = self.make_layer(item_emb_dim, self.item_fc)
 
-    def forward(self, input_dict: Dict[int, torch.Tensor]):
+    def forward(self, input_dict: Dict[str, torch.Tensor]):
         user_input = self.user_input(input_dict)
         item_input = self.item_input(input_dict)
         user_emb = self.user_tower(user_input)
@@ -64,3 +64,35 @@ class TwoTowerModel(nn.Module):
         # dot product
         output = torch.mul(user_emb, item_emb).sum(dim=1)
         return output
+    
+    def export(self, path: str):
+        user_input = torch.randn(1, self.user_input.shape)
+        item_input = torch.randn(1, self.item_input.shape)
+        dummy_input = {k: torch.randn(1, v.size) for k, v in self.user_block.items()}
+        dummy_input.update({k: torch.randn(1, v.size) for k, v in self.item_block.items()})
+        print(dummy_input)
+        self.cpu().eval()
+        print('done forward')
+        # for muiltiple tensor input
+        # torch.onnx.export(
+        #     self,
+        #     (user_input, item_input),
+        #     path,
+        #     export_params=True,
+        #     input_names = ['user_input', 'item_input'],
+        #     output_names = ['output'],
+        #     dynamic_axes={
+        #         'user_input' : {0: 'batch_size'},
+        #         'item_input' : {0: 'batch_size'},
+        #         'output' : {0: 'batch_size'}
+        #     }
+        # )
+        torch.onnx.export(
+            self,
+            {'input_dict':dummy_input},
+            path,
+            export_params=True,
+            input_names = ['input'],
+            output_names = ['output'],
+            dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+        )

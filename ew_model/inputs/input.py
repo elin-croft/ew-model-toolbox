@@ -30,13 +30,14 @@ class BaseInput(nn.Module):
     def shape(self):
         return sum([i.shape for i in self.layer_map.values()])
     
-    def forward(self, x: Dict[int, torch.Tensor]):
+    def forward(self, x: Dict[str, torch.Tensor]):
         out = []
         # TODO: handle miss feature
         try:
             for block_id in self.block_ids:
-                value = x[block_id]
-                layer = self.layer_map[str(block_id)]
+                bid = str(block_id)
+                value = x[bid]
+                layer = self.layer_map[bid]
                 if value.ndim == 1:
                     value = value.unsqueeze(0)
                 out.append(layer(value))
