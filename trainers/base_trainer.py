@@ -1,8 +1,9 @@
 import os, sys
 
-cwd = s=os.getcwd()
-if cwd not in sys.path:
-    sys.path.append(cwd)
+cwd = os.path.abspath(os.path.dirname(__file__))
+project_path = os.path.abspath(os.path.join(cwd, ".."))
+if project_path not in sys.path:
+    sys.path.insert(0, project_path)
 
 import argparse
 import importlib
@@ -14,22 +15,28 @@ from torch.utils.data import DataLoader
 
 from ew_model import build_model, build_loss, build_optim
 from dataset import build_dataset
+from utils import parse_path
 from io import BytesIO
 
 class TrainConfig:
     def __init__(self):
         self.path = None
-        self.args = self.get_model_config()
+        args = self.get_model_config()
+        self.model_config_path = args.model_config_path
+        self.worker_count = args.worker_count
+        self.checkpoint_path = args.checkpoint_path
+        self.mode = args.mode
 
     def get_model_config(self):
         parser = argparse.ArgumentParser(description="model config")
         parser.add_argument("--model_config_path", type=str, default="configs/two_tower_config", help="model config path")
         parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
-        #parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
+        parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
+        parser.add_argument("--mode", type=str, default="train", help="train or test or export")
         args = parser.parse_args()
-        self.path = args.model_config_path
-        if self.path.endswith("/"):
-            self.path = self.path[:-1]
+        for k, v in vars(args).items():
+            print(f"{k}: {v}")
+            self.__setattr__(k, v)
         return args
 
 
@@ -43,8 +50,8 @@ class BaseTrainer:
         self.build()
     
     def parse_model_args(self):
-        self.model_config_path = self.args.path
-        module_path = self.model_config_path.replace("/", ".").replace(".py", "")
+        model_config_path = self.args.model_config_path
+        module_path = parse_path(model_config_path)
         logging.info(f"model config package: {module_path}")
         config = importlib.import_module(module_path)
 
@@ -73,7 +80,7 @@ class BaseTrainer:
         self.dataset.to(self.device)
 
     def run(self):
-        self.export_model()
+        self.rec_model_test()
 
     def save_model(self):
         buffer = BytesIO()
