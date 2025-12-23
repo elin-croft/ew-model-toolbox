@@ -10,7 +10,7 @@ import importlib
 import logging
 
 import torch
-import torch. nn as nn
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from ew_model import build_model, build_loss, build_optim
@@ -31,8 +31,9 @@ class TrainConfig:
         parser = argparse.ArgumentParser(description="model config")
         parser.add_argument("--model_config_path", type=str, default="configs/two_tower_config", help="model config path")
         parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
+        parser.add_argument("restore_path", type=str, default="", help="restore checkpoint path")
         parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
-        parser.add_argument("--mode", type=str, default="train", help="train or test or export")
+        parser.add_argument("--mode", type=str, default="train", help="train or restore or test or export")
         args = parser.parse_args()
         for k, v in vars(args).items():
             print(f"{k}: {v}")
@@ -71,30 +72,35 @@ class BaseTrainer:
         self.device = self.train_cfg.get("device", "cpu")
         optim_cfg = self.train_cfg.get("optimizer")
         optim_args = dict(
-            params=self.model.parameters(),
+            params=filter(lambda p: p.requires_grad, self.model.parameters()),
             **optim_cfg
         )
         self.loss = build_loss(loss)
         self.optim = build_optim(optim_args)
-        self.model.to(self.device)
-        self.dataset.to(self.device)
+        # self.model.to(self.device)
+        # self.dataset.to(self.device)
 
     def run(self):
         self.rec_model_test()
 
-    def save_model(self):
+    def save_model(self, path='', fix=''):
         buffer = BytesIO()
         torch.save(self.model.state_dict(), buffer)
-        path = os.path.join("", "model.pth")
+        path = os.path.join(path, f"model_weight_{fix}.pth")
         with open(path, 'wb') as f:
             f.write(buffer.getvalue())
 
-    def load_model(self, path='model.pth'):
+    def load_model(self, path='', fix='final'):
         if not os.path.exists(path):
             raise FileNotFoundError(f"model path {path} not exists")
-        with open(path, 'rb') as f:
+        with open(os.path.join(path, f'model_weight_{fix}'), 'rb') as f:
             byte = BytesIO(f.read())
             self.model.load_state_dict(torch.load(byte, weights_only=True))
+    
+    def train(self, model, dataset, **kwargs):
+        model.to(self.device)
+        model.train()
+        print("training model...")
     
     def export_model(self, path='model.onnx'):
         self.model.export(path)
@@ -105,7 +111,7 @@ class BaseTrainer:
             print(data)
             out = self.model(data)
             print(out.shape)
-            l = self.loss(out, label[:,0])
+            l = self.loss(out, label)
             print(l)
             self.optim.zero_grad()
             l.backward()
@@ -116,8 +122,7 @@ class BaseTrainer:
         for i, (dummy, label) in enumerate(train_data):
             out = self.model(dummy)
             print(label)
-            click = label[:, 0]
-            loss = nn.functional.binary_cross_entropy(out, click)
+            loss = self.loss(out, label)
             self.optim.zero_grad()
             loss.backward()
             self.optim.step()

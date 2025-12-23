@@ -9,7 +9,7 @@ def Compose():
     args = dict(
         model_cfg=model_cfg,
         loss_cfg=dict(
-            module_name="CrossEntropy"
+            module_name="BinaryCrossEntropy"
         ),
         dataset_cfg=dict(
             module_name="CsvRecDataset",

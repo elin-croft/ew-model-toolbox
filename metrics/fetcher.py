@@ -1,9 +1,11 @@
-from typing import AnyStr
-from .builder import METRICS
+from typing import List, Callable
+# from .builder import METRICS
+
 class MetricsFetcher:
-    def __init__(self, metrics:str):
-        self.metrics = metrics.split(",")
-        self.metircs_map = {k: METRICS.build((dict(module_name=k))) for k in self.metrics}
+    def __init__(self, metrics:List[str], metrics_func:List[Callable]):
+        self.metrics = metrics
+        for i, t in enumerate(metrics):
+            self.metircs_map[t] = metrics_func[i]
     
     def __call__(self, pred, target, **kwargs):
         result_list = []

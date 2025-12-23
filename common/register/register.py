@@ -1,6 +1,7 @@
 import os, sys
 from abc import ABCMeta
 import inspect
+from typing_extensions import deprecated
 import logging
 from .build_functions import *
 
@@ -77,6 +78,7 @@ class Register:
         #     raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
         return self.build_func(cfg, self)
 
+    @deprecated("build_args is deprecated, please use dict as config instead of --args string")
     def build_args(self, name, args: str):
         arg_cls = self.get(name=name)
         if arg_cls is None:
