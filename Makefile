@@ -1,18 +1,14 @@
 OS := $(shell uname -s)
+TAR_NO_XATTRS :=
 ifeq ($(OS), Darwin)
 	PLATFORM := macos
+	TAR_NO_XATTRS := --no-xattrs
 else ifeq ($(OS), Linux)
 	PLATFORM := linux
 else ifeq ($(OS), Windows)
 	PLATFORM := windows
 else
 	PLATFORM := unknown
-endif
-
-ifeq ($(PLATFORM), macos)
-	TAR_NO_XATTRS := --no-xattrs
-else
-	TAR_NO_XATTRS :=
 endif
 
 info:

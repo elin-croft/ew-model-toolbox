@@ -14,32 +14,11 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from ew_model import build_model, build_loss, build_optim
-from dataset import build_dataset
+from dataset import build_dataset, build_dataloader, build_data_helper
 from utils import parse_path
 from io import BytesIO
 
-class TrainConfig:
-    def __init__(self):
-        self.path = None
-        args = self.get_model_config()
-        self.model_config_path = args.model_config_path
-        self.worker_count = args.worker_count
-        self.checkpoint_path = args.checkpoint_path
-        self.mode = args.mode
-
-    def get_model_config(self):
-        parser = argparse.ArgumentParser(description="model config")
-        parser.add_argument("--model_config_path", type=str, default="configs/two_tower_config", help="model config path")
-        parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
-        parser.add_argument("restore_path", type=str, default="", help="restore checkpoint path")
-        parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
-        parser.add_argument("--mode", type=str, default="train", help="train or restore or test or export")
-        args = parser.parse_args()
-        for k, v in vars(args).items():
-            print(f"{k}: {v}")
-            self.__setattr__(k, v)
-        return args
-
+from trainers.train_config import TrainConfig
 
 class BaseTrainer:
     def __init__(self):
@@ -48,6 +27,7 @@ class BaseTrainer:
         self.loss = None
         self.train_cfg = None
         self.device = 'cpu'
+        self.cfg = self.parse_model_args()
         self.build()
     
     def parse_model_args(self):
@@ -60,12 +40,10 @@ class BaseTrainer:
         return args
 
     def build(self):
-        args = self.parse_model_args()
+        args = self.cfg
         model = args.get('model_cfg')
-        dataset_cfg = args.get("dataset_cfg")
         loss = args.get('loss_cfg')
         self.model = build_model(model)
-        self.dataset = build_dataset(dataset_cfg)
         # TODO: build dataset and optimizer and scheduler
         #TODO: move loss cfg into train
         self.train_cfg = args.get("train_cfg")
@@ -77,11 +55,18 @@ class BaseTrainer:
         )
         self.loss = build_loss(loss)
         self.optim = build_optim(optim_args)
-        # self.model.to(self.device)
-        # self.dataset.to(self.device)
 
     def run(self):
-        self.rec_model_test()
+        data_cfg = self.cfg.get("data_cfg")
+        dataset_cfg = data_cfg.get("dataset_cfg")
+        dataset = build_dataset(dataset_cfg)
+        dataloader_cfg = data_cfg.get("dataloader_cfg")
+        dataloader = build_dataloader(dataloader_cfg, dataset)
+        datasetter_cfg = data_cfg.get("data_setter_cfg")
+        datasetter = build_data_helper(datasetter_cfg)
+        self.dataset = build_dataset(dataset_cfg)
+        if self.args.mode in ("train", "restore"):
+            self.train(self.model, dataloader, datasetter)
 
     def save_model(self, path='', fix=''):
         buffer = BytesIO()
@@ -97,10 +82,18 @@ class BaseTrainer:
             byte = BytesIO(f.read())
             self.model.load_state_dict(torch.load(byte, weights_only=True))
     
-    def train(self, model, dataset, **kwargs):
+    def train(self, model, dataset, datasetter, **kwargs):
         model.to(self.device)
         model.train()
         print("training model...")
+        for i, (data, label) in enumerate(dataset):
+            data = datasetter(data, self.device)
+            label = datasetter(label, self.device)
+            out = model(data)
+            loss = self.loss(out, label)
+            self.optim.zero_grad()
+            loss.backward()
+            self.optim.step()
     
     def export_model(self, path='model.onnx'):
         self.model.export(path)

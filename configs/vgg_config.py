@@ -39,14 +39,24 @@ def Compose():
     loss_args = dict(
         module_name="CrossEntropy"
     )
-    dataset_cfg = dict(
-        module_name="CsvDataset",
-        path=os.path.join(os.path.expanduser("~"), "Documents/dataset.csv"),
-        hook=hook,
-        transform=piplineCompose([
-            transforms.Normalization(min_val=0.0, max_val=255.0),
-            transforms.Resize(size=(224, 224))
-        ])
+    data_cfg=dict(
+        dataset_cfg = dict(
+            module_name="CsvDataset",
+            path=os.path.join(os.path.expanduser("~"), "Documents/dataset.csv"),
+            hook=hook,
+            transform=piplineCompose([
+                transforms.Normalization(min_val=0.0, max_val=255.0),
+                transforms.Resize(size=(224, 224))
+            ])
+        ),
+        dataloader_cfg = dict(
+            module_name="DataLoader",
+            batch_size=1,
+            shuffle=True,
+        ),
+        data_setter_cfg=dict(
+            module_name="default_data_device_setter",
+        )
     )
     # train param config
     train_cfg = dict(
@@ -64,7 +74,7 @@ def Compose():
     args = dict(
         model_cfg=model_args,
         loss_cfg=loss_args,
-        dataset_cfg=dataset_cfg,
+        data_cfg=data_cfg,
         train_cfg=train_cfg,
         test_cfg=test_cfg
     )

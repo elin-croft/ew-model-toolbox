@@ -3,13 +3,19 @@ from common.register import Register
 from common.register import build_colate_fn_from_cfg
 
 DATASET = Register("dataset")
+DATA_HELPER = Register("data_helper")
 COLATE_FN = Register("colate_fn", build_func=build_colate_fn_from_cfg)
 
 def build_dataset(cfg):
     return DATASET.build(cfg)
 
+def build_data_helper(cfg):
+    return DATA_HELPER.build(cfg)
+
 def build_dataloader(cfg, dataset) -> DataLoader:
     copied_cfg = cfg.copy()
+    if "module_name" in copied_cfg:
+        copied_cfg.pop("module_name")
     num_record = dataset.num_record if hasattr(dataset, 'num_record') else 1
     batch_size = copied_cfg.get("batch_size", 1)
     assert batch_size % num_record == 0, f"batch size {batch_size} must be divisible by num_record {num_record}"

@@ -18,5 +18,16 @@ class CrossEntropy(nn.Module):
         super().__init__()
     
     def forward(self, x, label, weight=None, reduction='mean'):
+        label = label[:, 0]
         out = cross_entropy(input=x, label=label, weight=weight, reduction=reduction)
+        return out
+
+@LOSS.register_module()
+class BinaryCrossEntropy(nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__()
+    
+    def forward(self, x, label, weight=None, reduction='mean'):
+        label = label[:, 0]
+        out = F.binary_cross_entropy(input=x, target=label, weight=weight, reduction=reduction)
         return out

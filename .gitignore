@@ -3,4 +3,7 @@
 **/__pycache__
 .idea
 **/gen_py
+*.tar.gz
+*.pth
+*.onnx*
 
