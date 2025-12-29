@@ -14,7 +14,7 @@ class TrainConfig:
         parser.add_argument("--model_config_path", type=str, default="configs/two_tower_config", help="model config path")
         parser.add_argument("--worker_count", type=int, default=1, help="gpu worker count")
         parser.add_argument("--restore_path", type=str, default="", help="restore checkpoint path")
-        parser.add_argument("--checkpoint_path", type=str, default="", help="checkpoint path")
+        parser.add_argument("--checkpoint_path", type=str, default="./", help="checkpoint path")
         parser.add_argument("--mode", type=str, default="train", help="train or restore or test or export")
         args = parser.parse_args()
         for k, v in vars(args).items():

@@ -1,9 +1,6 @@
 import torch
 import logging
 from dataset.builder import DATA_HELPER
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from common.feature import FeatureItem
 
 @DATA_HELPER.register_module()
 def default_data_device_setter(data, device, **kwargs):

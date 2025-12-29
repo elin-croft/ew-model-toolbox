@@ -55,22 +55,69 @@ class BaseTrainer:
         )
         self.loss = build_loss(loss)
         self.optim = build_optim(optim_args)
-
-    def run(self):
-        data_cfg = self.cfg.get("data_cfg")
+    
+    def build_dataset(self, data_cfg, data_path=""):
         dataset_cfg = data_cfg.get("dataset_cfg")
+        if data_path != "":
+            dataset_cfg['path']
         dataset = build_dataset(dataset_cfg)
         dataloader_cfg = data_cfg.get("dataloader_cfg")
         dataloader = build_dataloader(dataloader_cfg, dataset)
         datasetter_cfg = data_cfg.get("data_setter_cfg")
         datasetter = build_data_helper(datasetter_cfg)
-        self.dataset = build_dataset(dataset_cfg)
-        if self.args.mode in ("train", "restore"):
-            self.train(self.model, dataloader, datasetter)
+        return dataset, dataloader, datasetter
 
-    def save_model(self, path='', fix=''):
+    def run(self):
+        if self.args.mode in ("train", "restore"):
+            dataset, dataloader, datasetter = self.build_dataset(self.cfg.get("data_cfg"))
+            self.train(self.model, dataloader, datasetter)
+            self.save_model(self.model, path=self.args.checkpoint_path, fix='final')
+        else:
+            self.load_model(path=self.args.checkpoint_path)
+            if self.args.mode == "test":
+                dataset, dataloader, datasetter = self.build_dataset(self.cfg.get("data_cfg"))
+                self.valid(self.model, dataloader, datasetter)
+    
+    def train(self, model, dataset, datasetter, **kwargs):
+        model.to(self.device)
+        model.train()
+        print("training model...")
+        for i, (data, label) in enumerate(dataset):
+            data = datasetter(data, self.device, **kwargs)
+            label = datasetter(label, self.device, **kwargs)
+            out = model(data)
+            if i > 0 and i % 2000 == 0:
+                self.save_model(
+                    model,
+                    optim=self.optim, step=i,
+                    path=self.args.checkpoint_path, fix=f'checkpoint_{i}'
+                )
+            loss = self.loss(out, label)
+            self.optim.zero_grad()
+            loss.backward()
+            self.optim.step()
+    
+    @torch.no_grad()
+    def valid(self, model, dataset, datasetter, **kwargs):
+        model.to(self.device)
+        model.eval()
+        print("validating model...")
+
+
+    def export_model(self, path='model.onnx'):
+        self.model.export(path)
+
+    def save_model(self, model, optim=None, step=None, path='', fix=''):
         buffer = BytesIO()
-        torch.save(self.model.state_dict(), buffer)
+        if 'checkpoint' in fix:
+            weight = dict(
+                step=step,
+                state_dict=self.model.state_dict(),
+                optim_state_dict=self.optim.state_dict()
+            )
+        else:
+            weight = self.model.state_dict()
+        torch.save(weight, buffer)
         path = os.path.join(path, f"model_weight_{fix}.pth")
         with open(path, 'wb') as f:
             f.write(buffer.getvalue())
@@ -78,25 +125,21 @@ class BaseTrainer:
     def load_model(self, path='', fix='final'):
         if not os.path.exists(path):
             raise FileNotFoundError(f"model path {path} not exists")
-        with open(os.path.join(path, f'model_weight_{fix}'), 'rb') as f:
+
+        weight = None 
+        step = 0
+        with open(os.path.join(path, f'model_weight_{fix}.pth'), 'rb') as f:
             byte = BytesIO(f.read())
-            self.model.load_state_dict(torch.load(byte, weights_only=True))
-    
-    def train(self, model, dataset, datasetter, **kwargs):
-        model.to(self.device)
-        model.train()
-        print("training model...")
-        for i, (data, label) in enumerate(dataset):
-            data = datasetter(data, self.device)
-            label = datasetter(label, self.device)
-            out = model(data)
-            loss = self.loss(out, label)
-            self.optim.zero_grad()
-            loss.backward()
-            self.optim.step()
-    
-    def export_model(self, path='model.onnx'):
-        self.model.export(path)
+            if 'checkpoint' in fix:
+                weight = torch.load(byte)
+                step = weight['step']
+                state_dict = weight['state_dict']
+                optim_state_dict = weight['optim_state_dict']
+                self.model.load_state_dict(state_dict)
+                self.optim.load_state_dict(optim_state_dict)
+            else:
+                self.model.load_state_dict(torch.load(byte, weights_only=True))
+        return step
 
     def model_test(self):
         datas = DataLoader(self.dataset, batch_size=1, shuffle=True)
