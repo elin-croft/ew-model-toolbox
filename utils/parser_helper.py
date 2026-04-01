@@ -1,0 +1,51 @@
+import re
+from typing import List
+
+def split_with_parentheses(s) -> List[str]:
+    # 使用正则表达式提取逗号分割的内容，同时忽略括号内的逗号
+    pattern = r'(?:[^,(]|\([^)]*\))+'
+    return re.findall(pattern, s)
+
+def isTupleInstance(string:str):
+    if string.startswith('(') and string.endswith(')'):
+        return True
+
+def kernel_size_parser(string:str):
+    argList = split_with_parentheses(string)
+
+    res = []
+    if len(argList) == 1:
+        size = int(argList[0])
+        res.append((size, size))
+        return res
+    elif len(argList) > 1:
+        for arg in argList:
+            if isTupleInstance(arg):
+                size = arg.replace("(","").replace(")","").split(",")
+                assert len(size) > 1
+                size = list(map(int, size))
+                res.append((size[0], size[1]))
+            elif arg.isdigit():
+                size = int(arg)
+                res.append((size, size))
+        return res
+
+def tuple_list_parser(arg_type):
+    def tuple_list_parser_core(string: str):
+        args = string.split(",")
+        res = []
+        for arg in args:
+            tuple_args = tuple(map(arg_type, arg.split("-")))
+            res.append(tuple_args)
+        return res
+    return tuple_list_parser_core
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'y', 'true', '1'):
+        return True
+    elif v.lower() in ('no', 'n', 'false', '0'):
+        return False
+    else:
+        raise RuntimeError(f'argument type error, Boolean value expected. Got {v}, type {type(v)}')

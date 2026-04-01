@@ -5,7 +5,7 @@ project_path = os.path.abspath(os.path.join(cwd, ".."))
 if project_path not in sys.path:
     sys.path.insert(0, project_path)
 
-import argparse
+from io import BytesIO
 import importlib
 import logging
 
@@ -15,8 +15,8 @@ from torch.utils.data import DataLoader
 
 from ew_model import build_model, build_loss, build_optim
 from dataset import build_dataset, build_dataloader, build_data_helper
+from metrics import build_metrics_fetcher
 from utils import parse_path
-from io import BytesIO
 
 from trainers.train_config import TrainConfig
 
@@ -25,6 +25,8 @@ class BaseTrainer:
         self.args = TrainConfig()
         self.model: nn.Module = None
         self.loss = None
+        self.optim = None
+        self.fetcher = None
         self.train_cfg = None
         self.device = 'cpu'
         self.cfg = self.parse_model_args()
@@ -42,18 +44,21 @@ class BaseTrainer:
     def build(self):
         args = self.cfg
         model = args.get('model_cfg')
-        loss = args.get('loss_cfg')
+        metrics = args.get('metrics_cfg', "mse")
         self.model = build_model(model)
         # TODO: build dataset and optimizer and scheduler
         #TODO: move loss cfg into train
-        self.train_cfg = args.get("train_cfg")
-        self.device = self.train_cfg.get("device", "cpu")
-        optim_cfg = self.train_cfg.get("optimizer")
+        self.fetcher = build_metrics_fetcher(metrics)
+    
+    def build_train_component(self, train_cfg):
+        self.device = train_cfg.get("device", "cpu")
+        loss_cfg = train_cfg.get("loss_cfg", {})
+        optim_cfg = train_cfg.get("optimizer")
         optim_args = dict(
             params=filter(lambda p: p.requires_grad, self.model.parameters()),
             **optim_cfg
         )
-        self.loss = build_loss(loss)
+        self.loss = build_loss(loss_cfg)
         self.optim = build_optim(optim_args)
     
     def build_dataset(self, data_cfg, data_path=""):
@@ -69,14 +74,20 @@ class BaseTrainer:
 
     def run(self):
         if self.args.mode in ("train", "restore"):
+            train_cfg = self.cfg.get("train_cfg", {})
+            self.build_train_component(train_cfg)
             dataset, dataloader, datasetter = self.build_dataset(self.cfg.get("data_cfg"))
-            self.train(self.model, dataloader, datasetter)
+            if self.args.mode == "restore":
+                self.load_model(path=self.args.restore_path, fix='final')
+            self.train(self.model, dataloader, datasetter, dataset_option=dataset.option)
             self.save_model(self.model, path=self.args.checkpoint_path, fix='final')
         else:
             self.load_model(path=self.args.checkpoint_path)
             if self.args.mode == "test":
                 dataset, dataloader, datasetter = self.build_dataset(self.cfg.get("data_cfg"))
-                self.valid(self.model, dataloader, datasetter)
+                self.valid(self.model, dataloader, datasetter, dataset_option=dataset.option)
+            elif self.args.mode == "export":
+                self.export_model(path=self.args.export_path)
     
     def train(self, model, dataset, datasetter, **kwargs):
         model.to(self.device)
@@ -85,14 +96,19 @@ class BaseTrainer:
         for i, (data, label) in enumerate(dataset):
             data = datasetter(data, self.device, **kwargs)
             label = datasetter(label, self.device, **kwargs)
-            out = model(data)
+            pred = model(data)
+            extra_info = model.fetch_extra_info()
+            if i > 0 and i % 100 == 0:
+                metrics = self.fetcher(pred, label)
+                msg = f"step {i}, loss: {loss.item()}, metrics: {metrics}"
+                print(msg.strip(","))
             if i > 0 and i % 2000 == 0:
                 self.save_model(
                     model,
                     optim=self.optim, step=i,
                     path=self.args.checkpoint_path, fix=f'checkpoint_{i}'
                 )
-            loss = self.loss(out, label)
+            loss = self.loss(pred, label, **extra_info)
             self.optim.zero_grad()
             loss.backward()
             self.optim.step()

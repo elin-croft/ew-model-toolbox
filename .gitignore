@@ -6,4 +6,5 @@
 *.tar.gz
 *.pth
 *.onnx*
+.vscode
 

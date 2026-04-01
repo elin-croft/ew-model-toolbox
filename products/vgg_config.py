@@ -1,4 +1,3 @@
-import torchvision
 from ew_model.builder import PARSERS
 from dataset import Compose as piplineCompose
 import dataset.transforms as transforms
@@ -62,6 +61,7 @@ def Compose():
     train_cfg = dict(
         device = "mps",
         batch_size=32,
+        loss_cfg=loss_args,
         optimizer=dict(
             module_name="SGD",
             lr=0.01
@@ -73,7 +73,6 @@ def Compose():
     )
     args = dict(
         model_cfg=model_args,
-        loss_cfg=loss_args,
         data_cfg=data_cfg,
         train_cfg=train_cfg,
         test_cfg=test_cfg

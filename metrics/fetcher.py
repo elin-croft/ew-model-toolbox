@@ -4,8 +4,9 @@ from typing import List, Callable
 class MetricsFetcher:
     def __init__(self, metrics:List[str], metrics_func:List[Callable]):
         self.metrics = metrics
+        self.metrics_map = {}
         for i, t in enumerate(metrics):
-            self.metircs_map[t] = metrics_func[i]
+            self.metrics_map[t] = metrics_func[i]
     
     def __call__(self, pred, target, **kwargs):
         result_list = []

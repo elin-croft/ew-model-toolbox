@@ -24,7 +24,7 @@ data_setter_cfg=dict(
 )
 train_cfg = dict(
     device = "mps",
-    batch_size=512,
+    loss_cfg=loss_cfg,
     optimizer=dict(
         module_name="Adam",
         lr=0.01
@@ -36,7 +36,6 @@ test_cfg = dict(
 def Compose():
     args = dict(
         model_cfg=model_cfg,
-        loss_cfg=loss_cfg,
         data_cfg=dict(
             dataset_cfg=dataset_cfg,
             dataloader_cfg=dataloader_cfg,

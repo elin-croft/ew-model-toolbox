@@ -16,8 +16,6 @@ class Register:
     
     def get(self, name):
         module = self.__model_cls_map[name]
-        if module is None:
-            raise KeyError(f"{name} hasn't been registered yet")
         return module
 
     def has_module(self, name):

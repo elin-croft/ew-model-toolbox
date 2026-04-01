@@ -21,14 +21,14 @@ def build_from_cfg(cfg: dict, register: 'Register'):
 
     try:
         obj_cls = register.get(module_name)
+        if inspect.isclass(obj_cls):
+            return obj_cls(**args)
+        elif inspect.isfunction(obj_cls):
+            return obj_cls
+        else:
+            raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
     except KeyError as e:
-        print(f"build {register.name} error: {str(e)}")
-    if inspect.isclass(obj_cls):
-        return obj_cls(**args)
-    elif inspect.isfunction(obj_cls):
-        return obj_cls
-    else:
-        raise TypeError(f"{module_name} is not a class or function, please check if your model has been propertly registered")
+        raise RuntimeError(f"build {register.name} error: {module_name} has not been registered")
 
 def build_colate_fn_from_cfg(cfg: dict, register: 'Register'):
     """

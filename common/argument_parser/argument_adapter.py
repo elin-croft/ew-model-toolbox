@@ -1,7 +1,8 @@
 import argparse
 from abc import ABCMeta, abstractmethod
+from typing_extensions import deprecated
 
-
+@deprecated(reason="BaseParser is a helper for command line like argument, please format input argument in a dict")
 class BaseParser(metaclass=ABCMeta):
     def __init__(self):
         self.arg_name = self.__class__.__name__
