@@ -53,11 +53,28 @@ def fuse_linear_bn(linear: nn.Linear, bn: nn.BatchNorm1d):
         fused_linear.bias.copy_(b_fused)
     return fused_linear
 
-if __name__ == "__main__":
-    x = torch.randn(2, 10, 4)
-    linear = nn.Linear(4, 8).eval()
-    bn = nn.BatchNorm1d(8).eval()
-    y1 = bn(torch.permute(linear(x), (0, 2, 1))).permute(0, 2, 1)
-    fused_linear = fuse_linear_bn(linear, bn)
-    y2 = fused_linear(x)
-    print(torch.max(torch.abs(y1 - y2)).item())
+def load_partilay_state_dict(old_param: torch.Tensor, new_param: torch.Tensor, initial_type='xavier'):
+    """
+    Loads a state dictionary into a module, allowing for partial matches.
+
+    Args:
+        old_param (torch.Tensor): The parameter tensor to be updated.
+        new_param (torch.Tensor): The new parameter tensor.
+        initial_type (str): The initialization type for the updated parameter tensor.
+    Returns:
+        torch.Tensor: The updated parameter tensor.
+    """
+    _, in_feature_new = new_param.shape
+    in_feature_old = old_param.shape[1]
+    with torch.no_grad():
+        if in_feature_new > in_feature_old:
+            if initial_type == 'xavier':
+                new_param[:, :in_feature_old] = old_param
+                nn.init.xavier_uniform_(new_param[:, in_feature_old:])
+            else:
+                new_param[:, :in_feature_old] = old_param
+                nn.init.kaiming_uniform_(new_param[:, in_feature_old:], a=np.sqrt(5))
+        else:
+            new_param = old_param[:, :in_feature_new]
+    return new_param
+

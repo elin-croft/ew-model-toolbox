@@ -92,6 +92,10 @@ class BaseTrainer:
     def train(self, model, dataset, datasetter, **kwargs):
         model.to(self.device)
         model.train()
+
+        if self.args.compile_model:
+            model = torch.compile(model)
+
         print("training model...")
         for i, (data, label) in enumerate(dataset):
             data = datasetter(data, self.device, **kwargs)
